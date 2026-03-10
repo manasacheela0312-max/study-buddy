@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Study Buddy 🍅</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --yellow:#fef08a; --yellow-mid:#fde047; --yellow-dark:#ca8a04; --yellow-soft:#fefce8;
+    --blue:#bfdbfe; --blue-mid:#93c5fd; --blue-dark:#1d4ed8; --blue-soft:#eff6ff;
+    --tomato:#ef4444; --tomato-light:#fecaca;
+    --bg:#fffbeb; --surface:#ffffff; --text:#1c1917; --muted:#78716c; --border:#e7e5e4;
+    --shadow:0 2px 16px rgba(0,0,0,0.07);
+  }
+  html { scroll-behavior: smooth; }
+  body { background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body::before { content:''; position:fixed; width:600px; height:600px; background:radial-gradient(circle,#fef08a55 0%,transparent 70%); top:-200px; right:-200px; pointer-events:none; z-index:0; }
+  body::after  { content:''; position:fixed; width:500px; height:500px; background:radial-gradient(circle,#bfdbfe55 0%,transparent 70%); bottom:-100px; left:-150px; pointer-events:none; z-index:0; }
+  .container { max-width:860px; margin:0 auto; padding:0 24px 80px; position:relative; z-index:1; }
+
+  /* HEADER */
+  header { padding:56px 0 8px; text-align:center; }
+  .tomato-wrap { display:inline-block; animation:bounce 2.5s ease-in-out infinite; margin-bottom:16px; }
+  .tomato { font-size:64px; filter:drop-shadow(0 4px 12px rgba(239,68,68,0.3)); }
+  h1 { font-family:'Fraunces',serif; font-size:clamp(44px,9vw,82px); font-weight:900; line-height:1; letter-spacing:-2px; animation:fadeUp 0.7s 0.1s ease both; }
+  h1 .buddy { color:var(--tomato); font-style:italic; }
+  .tagline { margin-top:14px; font-size:15px; color:var(--muted); line-height:1.6; animation:fadeUp 0.7s 0.2s ease both; }
+
+  /* TABS */
+  .tabs { display:flex; gap:8px; margin:44px 0 24px; animation:fadeUp 0.7s 0.3s ease both; }
+  .tab { flex:1; padding:14px 20px; border-radius:16px; border:2px solid var(--border); background:var(--surface); font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer; transition:all 0.2s; box-shadow:var(--shadow); }
+  .tab.active { background:var(--yellow); border-color:var(--yellow-mid); color:#92400e; box-shadow:0 4px 20px rgba(253,224,71,0.4); }
+  .tab:hover:not(.active) { border-color:var(--blue-mid); color:var(--blue-dark); }
+
+  /* PANELS */
+  .panel { display:none; }
+  .panel.active { display:block; animation:fadeUp 0.3s ease both; }
+
+  /* CARD */
+  .card { background:var(--surface); border:2px solid var(--border); border-radius:24px; padding:32px; box-shadow:var(--shadow); animation:fadeUp 0.5s 0.35s ease both; }
+  .card-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+
+  /* TOPIC INPUT */
+  .topic-row { display:flex; gap:10px; }
+  .topic-input { flex:1; border:2px solid var(--border); border-radius:14px; padding:14px 18px; font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; color:var(--text); background:var(--yellow-soft); outline:none; transition:border-color 0.2s,box-shadow 0.2s; }
+  .topic-input:focus { border-color:var(--yellow-mid); box-shadow:0 0 0 4px rgba(253,224,71,0.2); }
+  .topic-input::placeholder { color:#c4b5a0; }
+  .btn-primary { background:var(--yellow-mid); color:#78350f; border:2px solid var(--yellow-dark); border-radius:14px; padding:14px 24px; font-family:'Fraunces',serif; font-weight:700; font-size:15px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  .btn-primary:hover { background:var(--yellow); transform:translateY(-1px); box-shadow:0 4px 14px rgba(253,224,71,0.5); }
+  .btn-primary:active { transform:scale(0.97); }
+  .btn-primary:disabled { background:var(--border); border-color:var(--border); color:var(--muted); cursor:not-allowed; transform:none; box-shadow:none; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip { padding:6px 14px; border-radius:20px; border:1.5px solid var(--blue-mid); background:var(--blue-soft); color:var(--blue-dark); font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .chip:hover { background:var(--blue); border-color:var(--blue-dark); }
+
+  /* UPLOAD */
+  .upload-zone { border:2.5px dashed var(--blue-mid); border-radius:20px; padding:48px 24px; text-align:center; cursor:pointer; background:var(--blue-soft); transition:all 0.2s; position:relative; }
+  .upload-zone:hover, .upload-zone.dragover { border-color:var(--blue-dark); background:#dbeafe; }
+  .upload-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .upload-icon { font-size:40px; margin-bottom:12px; }
+  .upload-title { font-family:'Fraunces',serif; font-size:18px; font-weight:700; color:var(--blue-dark); margin-bottom:6px; }
+  .upload-sub { font-size:12px; color:var(--muted); }
+  .file-pill { display:none; align-items:center; gap:12px; background:#dbeafe; border:1.5px solid var(--blue-mid); border-radius:14px; padding:12px 16px; margin-bottom:16px; }
+  .file-pill.show { display:flex; }
+  .file-pill-name { font-weight:700; font-size:13px; color:var(--blue-dark); flex:1; }
+  .file-pill-size { font-size:11px; color:var(--muted); }
+  .btn-remove { background:none; border:1.5px solid var(--border); border-radius:8px; padding:4px 10px; font-size:11px; color:var(--muted); cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.15s; }
+  .btn-remove:hover { border-color:var(--tomato); color:var(--tomato); }
+  .btn-syllabus { width:100%; padding:16px; background:var(--blue-mid); color:var(--blue-dark); border:2px solid var(--blue-dark); border-radius:16px; font-family:'Fraunces',serif; font-weight:700; font-size:16px; cursor:pointer; transition:all 0.2s; }
+  .btn-syllabus:hover { background:var(--blue); transform:translateY(-1px); box-shadow:0 4px 16px rgba(147,197,253,0.5); }
+  .btn-syllabus:disabled { background:var(--border); border-color:var(--border); color:var(--muted); cursor:not-allowed; transform:none; box-shadow:none; }
+
+  /* ERROR */
+  #error { display:none; background:#fef2f2; border:1.5px solid var(--tomato-light); border-radius:14px; padding:14px 18px; color:var(--tomato); font-size:13px; font-weight:600; margin-top:16px; }
+
+  /* LOADING */
+  #loading { display:none; text-align:center; padding:60px 0; }
+  .loading-tomato { font-size:48px; animation:spin 1s linear infinite; display:inline-block; margin-bottom:16px; }
+  .loading-text { font-family:'Fraunces',serif; font-size:18px; font-weight:700; color:var(--muted); }
+  .loading-sub { font-size:12px; color:#c4b5a0; margin-top:6px; }
+
+  /* RESULTS */
+  #results { display:none; margin-top:40px; }
+  .results-title-row { display:flex; align-items:center; gap:14px; margin-bottom:32px; }
+  .results-icon { font-size:28px; }
+  .results-heading { font-family:'Fraunces',serif; font-size:26px; font-weight:900; }
+  .results-topic-badge { background:var(--yellow); border:1.5px solid var(--yellow-mid); color:#92400e; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; }
+  .section-head { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .section-head-icon { font-size:20px; }
+  .section-head-title { font-family:'Fraunces',serif; font-size:20px; font-weight:700; }
+  .section-head-sub { font-size:12px; color:var(--muted); margin-left:4px; }
+
+  /* PARETO */
+  .pareto-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-bottom:44px; }
+  .pareto-card { background:var(--surface); border:2px solid var(--yellow-mid); border-radius:18px; padding:18px 20px; position:relative; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; animation:fadeUp 0.4s ease both; box-shadow:0 2px 10px rgba(253,224,71,0.2); }
+  .pareto-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(253,224,71,0.3); }
+  .pareto-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,var(--yellow-mid),var(--yellow-dark)); }
+  .pareto-num { font-family:'Fraunces',serif; font-size:28px; font-weight:900; color:var(--yellow-mid); line-height:1; margin-bottom:8px; }
+  .pareto-concept { font-family:'Fraunces',serif; font-size:16px; font-weight:700; margin-bottom:6px; }
+  .pareto-why { font-size:12px; color:var(--muted); line-height:1.6; }
+
+  /* ROADMAP */
+  .roadmap-list { display:flex; flex-direction:column; gap:12px; margin-bottom:60px; }
+  .phase-card { background:var(--surface); border:2px solid var(--border); border-radius:20px; padding:22px 24px; display:flex; gap:20px; align-items:flex-start; transition:border-color 0.2s,box-shadow 0.2s; animation:fadeUp 0.4s ease both; box-shadow:var(--shadow); }
+  .phase-card:hover { border-color:var(--blue-mid); box-shadow:0 4px 20px rgba(147,197,253,0.2); }
+  .phase-number { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:18px; font-weight:900; flex-shrink:0; }
+  .phase-n0 { background:var(--yellow); color:#92400e; }
+  .phase-n1 { background:var(--blue); color:var(--blue-dark); }
+  .phase-n2 { background:#fce7f3; color:#9d174d; }
+  .phase-n3 { background:#d1fae5; color:#065f46; }
+  .phase-body { flex:1; }
+  .phase-top { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .phase-name { font-family:'Fraunces',serif; font-size:17px; font-weight:700; }
+  .phase-duration { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; letter-spacing:0.5px; }
+  .phase-d0 { background:var(--yellow); color:#92400e; }
+  .phase-d1 { background:var(--blue); color:var(--blue-dark); }
+  .phase-d2 { background:#fce7f3; color:#9d174d; }
+  .phase-d3 { background:#d1fae5; color:#065f46; }
+  .phase-topics { display:flex; flex-wrap:wrap; gap:8px; }
+  .topic-tag { font-size:12px; font-weight:600; padding:5px 12px; border-radius:20px; background:var(--blue-soft); border:1.5px solid var(--blue-mid); color:var(--blue-dark); transition:all 0.15s; }
+  .topic-tag:hover { background:var(--blue); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  @media(max-width:600px) {
+    .topic-row{flex-direction:column} .btn-primary{width:100%}
+    .pareto-grid{grid-template-columns:1fr} .phase-card{flex-direction:column;gap:12px}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="tomato-wrap"><div class="tomato">🍅</div></div>
+    <h1>Study <span class="buddy">Buddy</span></h1>
+    <p class="tagline">Type any topic or drop your syllabus — get a smart roadmap<br>+ the 20% of concepts that unlock 80% of understanding.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('topic')">✏️ &nbsp; Type a Topic</button>
+    <button class="tab" onclick="switchTab('syllabus')">📄 &nbsp; Upload Syllabus</button>
+  </div>
+
+  <!-- TOPIC PANEL -->
+  <div class="panel active" id="panel-topic">
+    <div class="card">
+      <div class="card-label">What do you want to learn?</div>
+      <div class="topic-row">
+        <input class="topic-input" type="text" id="topic" placeholder="e.g. Machine Learning, DSA, Thermodynamics…"/>
+        <button class="btn-primary" id="btn-topic" onclick="generateFromTopic()">Let's go 🚀</button>
+      </div>
+      <div class="chips">
+        <div class="chip" onclick="setTopic('Machine Learning')">Machine Learning</div>
+        <div class="chip" onclick="setTopic('Data Structures & Algorithms')">DSA</div>
+        <div class="chip" onclick="setTopic('System Design')">System Design</div>
+        <div class="chip" onclick="setTopic('Web Development')">Web Dev</div>
+        <div class="chip" onclick="setTopic('SQL & Databases')">SQL</div>
+        <div class="chip" onclick="setTopic('Operating Systems')">OS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYLLABUS PANEL -->
+  <div class="panel" id="panel-syllabus">
+    <div class="card">
+      <div class="file-pill" id="file-pill">
+        <span style="font-size:20px">📎</span>
+        <span class="file-pill-name" id="file-name"></span>
+        <span class="file-pill-size" id="file-size"></span>
+        <button class="btn-remove" onclick="removeFile()">✕ Remove</button>
+      </div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".pdf" onchange="handleFile(this.files[0])"/>
+        <div class="upload-icon">📂</div>
+        <div class="upload-title">Drop your syllabus PDF here</div>
+        <div class="upload-sub">PDF only · max 10 MB · text is extracted in your browser — no file sent to any server</div>
+      </div>
+      <button class="btn-syllabus" id="btn-syllabus" onclick="generateFromSyllabus()" style="margin-top:16px">
+        Generate Roadmap from Syllabus 🍅
+      </button>
+    </div>
+  </div>
+
+  <div id="error"></div>
+
+  <div id="loading">
+    <div class="loading-tomato">🍅</div>
+    <div class="loading-text">Cooking up your roadmap…</div>
+    <div class="loading-sub">Powered by Groq + LLaMA · this takes a few seconds</div>
+  </div>
+
+  <div id="results">
+    <div class="results-title-row">
+      <div class="results-icon">🗺️</div>
+      <div class="results-heading">Your Roadmap</div>
+      <div class="results-topic-badge" id="results-badge"></div>
+    </div>
+    <div class="section-head">
+      <div class="section-head-icon">⚡</div>
+      <div class="section-head-title">80/20 Focus List</div>
+      <div class="section-head-sub">— start here for maximum results</div>
+    </div>
+    <div class="pareto-grid" id="pareto-grid"></div>
+    <div class="section-head">
+      <div class="section-head-icon">🍅</div>
+      <div class="section-head-title">Full Roadmap</div>
+      <div class="section-head-sub">— phase by phase</div>
+    </div>
+    <div class="roadmap-list" id="roadmap-list"></div>
+  </div>
+</div>
+
+<!-- PDF.js from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  // ── ONE KEY — Groq (free at console.groq.com) ──
+  const GROQ_API_KEY = "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";
+
+  // Set PDF.js worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  let uploadedFile = null;
+
+  // ── TABS ──
+  function switchTab(mode) {
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0) === (mode==='topic')));
+    document.getElementById('panel-topic').classList.toggle('active', mode==='topic');
+    document.getElementById('panel-syllabus').classList.toggle('active', mode==='syllabus');
+    hideError(); showResults(false);
+  }
+
+  function setTopic(t) { document.getElementById('topic').value = t; document.getElementById('topic').focus(); }
+
+  // ── FILE HANDLING ──
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('topic').addEventListener('keydown', e => { if (e.key==='Enter') generateFromTopic(); });
+    const zone = document.getElementById('upload-zone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  });
+
+  function handleFile(file) {
+    if (!file) return;
+    if (file.type !== 'application/pdf') { showError('Please upload a PDF file.'); return; }
+    if (file.size > 10 * 1024 * 1024) { showError('File too large — please keep it under 10 MB.'); return; }
+    hideError();
+    uploadedFile = file;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('file-pill').classList.add('show');
+    document.getElementById('upload-zone').style.display = 'none';
+  }
+
+  function removeFile() {
+    uploadedFile = null;
+    document.getElementById('file-pill').classList.remove('show');
+    document.getElementById('upload-zone').style.display = 'block';
+    document.getElementById('file-input').value = '';
+  }
+
+  // ── EXTRACT TEXT FROM PDF (runs entirely in browser, no upload) ──
+  async function extractPDFText(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(item => item.str).join(' ') + '\n';
+    }
+    return fullText.trim();
+  }
+
+  // ── PROMPTS ──
+  function topicPrompt(topic) {
+    return `You are a world-class learning coach. The student wants to learn: "${topic}".
+Return ONLY a valid JSON object — no markdown, no backticks, no extra text:
+{
+  "title": "Short descriptive title",
+  "roadmap": [
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3","t4"] },
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3"] },
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3"] },
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3"] }
+  ],
+  "pareto": [
+    { "concept": "Name", "why": "One sentence on why this gives 80% of results" },
+    { "concept": "Name", "why": "One sentence" },
+    { "concept": "Name", "why": "One sentence" },
+    { "concept": "Name", "why": "One sentence" },
+    { "concept": "Name", "why": "One sentence" }
+  ]
+}
+Rules: exactly 4 phases (3-5 topics each), exactly 5 pareto items, highly specific to "${topic}".`;
+  }
+
+  function syllabusPrompt(text) {
+    return `You are a world-class learning coach. Here is text extracted from a student's course syllabus:
+
+---
+${text.slice(0, 6000)}
+---
+
+Based on this syllabus, return ONLY a valid JSON object — no markdown, no backticks, no extra text:
+{
+  "title": "Course name from syllabus",
+  "roadmap": [
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3"] },
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3"] },
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3"] },
+    { "phase": "Phase name", "duration": "Week X-Y", "topics": ["t1","t2","t3"] }
+  ],
+  "pareto": [
+    { "concept": "Name from syllabus", "why": "Why mastering this covers 80% of the course" },
+    { "concept": "Name", "why": "One sentence" },
+    { "concept": "Name", "why": "One sentence" },
+    { "concept": "Name", "why": "One sentence" },
+    { "concept": "Name", "why": "One sentence" }
+  ]
+}
+Rules: extract topics DIRECTLY from the syllabus text, 4 logical phases, 5 highest-leverage pareto items.`;
+  }
+
+  // ── GROQ API — used for EVERYTHING ──
+  async function callGroq(prompt) {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.4, max_tokens: 1500
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `Groq API error ${res.status}`);
+    }
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || '';
+    return JSON.parse(text.replace(/```json|```/g, '').trim());
+  }
+
+  // ── GENERATE FROM TOPIC ──
+  async function generateFromTopic() {
+    const topic = document.getElementById('topic').value.trim();
+    if (!topic) { showError('Please type a topic first!'); return; }
+    hideError(); setLoading(true, 'btn-topic'); showResults(false);
+    try {
+      const data = await callGroq(topicPrompt(topic));
+      renderResults(data.title || topic, data);
+    } catch(e) {
+      showError(e.message || 'Something went wrong. Check the Groq API key in the code.');
+    } finally { setLoading(false, 'btn-topic'); }
+  }
+
+  // ── GENERATE FROM SYLLABUS ──
+  async function generateFromSyllabus() {
+    if (!uploadedFile) { showError('Please upload a syllabus PDF first!'); return; }
+    hideError(); setLoading(true, 'btn-syllabus'); showResults(false);
+    try {
+      // Step 1: extract text in browser using PDF.js (no file sent anywhere)
+      setLoadingText('Reading your syllabus…');
+      const text = await extractPDFText(uploadedFile);
+      if (!text || text.length < 50) throw new Error("Couldn't extract text — make sure the PDF isn't a scanned image.");
+
+      // Step 2: send extracted text to Groq
+      setLoadingText('Cooking up your roadmap…');
+      const data = await callGroq(syllabusPrompt(text));
+      renderResults(data.title || 'Your Syllabus', data);
+    } catch(e) {
+      showError(e.message || 'Something went wrong. Check the Groq API key in the code.');
+    } finally { setLoading(false, 'btn-syllabus'); }
+  }
+
+  // ── RENDER ──
+  function renderResults(topic, data) {
+    document.getElementById('results-badge').textContent = topic;
+
+    const paretoGrid = document.getElementById('pareto-grid');
+    paretoGrid.innerHTML = '';
+    data.pareto.forEach((item, i) => {
+      const c = document.createElement('div');
+      c.className = 'pareto-card';
+      c.style.animationDelay = `${i * 0.07}s`;
+      c.innerHTML = `<div class="pareto-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="pareto-concept">${item.concept}</div>
+        <div class="pareto-why">${item.why}</div>`;
+      paretoGrid.appendChild(c);
+    });
+
+    const roadmapList = document.getElementById('roadmap-list');
+    roadmapList.innerHTML = '';
+    data.roadmap.forEach((phase, i) => {
+      const c = document.createElement('div');
+      c.className = 'phase-card';
+      c.style.animationDelay = `${i * 0.1}s`;
+      c.innerHTML = `
+        <div class="phase-number phase-n${i%4}">${i+1}</div>
+        <div class="phase-body">
+          <div class="phase-top">
+            <div class="phase-name">${phase.phase}</div>
+            <div class="phase-duration phase-d${i%4}">${phase.duration}</div>
+          </div>
+          <div class="phase-topics">${phase.topics.map(t=>`<span class="topic-tag">${t}</span>`).join('')}</div>
+        </div>`;
+      roadmapList.appendChild(c);
+    });
+
+    showResults(true);
+    document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  // ── HELPERS ──
+  function setLoadingText(msg) {
+    const el = document.querySelector('.loading-text');
+    if (el) el.textContent = msg;
+  }
+  function setLoading(v, btnId) {
+    document.getElementById('loading').style.display = v ? 'block' : 'none';
+    document.getElementById(btnId).disabled = v;
+    if (v) setLoadingText('Cooking up your roadmap…');
+  }
+  function showResults(v) { document.getElementById('results').style.display = v ? 'block' : 'none'; }
+  function showError(msg) { const el = document.getElementById('error'); el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+  function hideError() { document.getElementById('error').style.display = 'none'; }
+</script>
+</body>
+</html>
