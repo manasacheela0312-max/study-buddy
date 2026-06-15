@@ -218,7 +218,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   // ── ONE KEY — Groq (free at console.groq.com) ──
-  const GROQ_API_KEY = "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";
+  
 
   // Set PDF.js worker
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -328,24 +328,28 @@ Rules: extract topics DIRECTLY from the syllabus text, 4 logical phases, 5 highe
   }
 
   // ── GROQ API — used for EVERYTHING ──
-  async function callGroq(prompt) {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.4, max_tokens: 1500
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `Groq API error ${res.status}`);
-    }
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    return JSON.parse(text.replace(/```json|```/g, '').trim());
+  
+ async function callGroq(prompt) {
+  const res = await fetch('/.netlify/functions/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Request failed');
   }
+
+  const text = data.choices?.[0]?.message?.content || '';
+
+  return JSON.parse(
+    text.replace(/```json|```/g, '').trim()
+  );
+}
 
   // ── GENERATE FROM TOPIC ──
   async function generateFromTopic() {
